@@ -1,0 +1,16 @@
+{
+    "productId": "Site_Accel",
+    "contractId": "C-1IE2OHM",
+    "groupIds": [
+        67223
+    ],
+    "environments": [
+        "dev"
+    ],
+    "version": "0.7.4-RELEASE",
+    "isSecure": false,
+    "edgeGridConfig": {
+        "section": "papi"
+    },
+    "name": "dsa"
+}

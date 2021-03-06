@@ -1,0 +1,17 @@
+{
+    "name": "dev",
+    "propertyName": "dev.dsa",
+    "groupId": 67223,
+    "isSecure": false,
+    "propertyId": 692762,
+    "latestVersionInfo": {
+        "propertyVersion": 1,
+        "updatedByUser": "xwvtneo6insjr4h4",
+        "updatedDate": "2021-03-06T17:18:29Z",
+        "productionStatus": "INACTIVE",
+        "stagingStatus": "INACTIVE",
+        "productId": "prd_Site_Accel",
+        "ruleFormat": "v2020-11-02"
+    },
+    "suggestedRuleFormat": "v2020-11-02"
+}
