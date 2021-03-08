@@ -77,8 +77,7 @@ property_rules = akamai.get_property_rules_template(
     variables = [
         {
             'name':"cpCode",
-            
-            
+            'value': int(cpcode.id.split('_')[1]),
             'type': "number",
         },
         {
