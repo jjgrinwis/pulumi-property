@@ -42,28 +42,27 @@ template_file = f"{product}/templates/main.json"
 # as we're out of availble cpcodes on this contract, lets use an existing one
 # akamai pm lcp -g <group_id> -c <contract_id>
 # https://www.pulumi.com/docs/reference/pkg/akamai/getcpcode/
-# we can't catch exceptions via try: yet in Pulumi
-# cpcode = akamai.get_cp_code(name=cpcode_name, contract_id=contract_id, group_id=group_id
-# let's check if product_id is part of the cpcode list
-# this is not a showstopper but just to make you aware.
-# if product_id not in cpcode.product_ids:
-#    error_string = f"{product_id} not part of cpcode {cpcode.name}"
-#    pulumi.warn(error_string)
-
-# create new cpcode resource, this will generate an output object.
-cpcode = akamai.CpCode(
-    property_name,
-    contract_id=contract_id,
-    group_id=group_id,
-    product=product_id
-)
-
+cpcode = akamai.get_cp_code(name=cpcode_name, contract_id=contract_id, group_id=group_id)
 pulumi.export('cpcode_id', cpcode.id)
 
-# let's use an apply as we need the info before running the get_property_rules template
-# raw_id = 0
-raw_id = cpcode.id.apply(lambda id: f"{id}")
-print(raw_id)
+# let's check if product_id is part of the cpcode list
+# this is not a showstopper but just to make you aware.
+if product_id not in cpcode.product_ids:
+    error_string = f"{product_id} not part of cpcode {cpcode.name}"
+    pulumi.warn(error_string)
+
+# we tried to create a new cpcode resource but that can't be used with our template
+# template won't wait for the result so will give an error as cpcode value isn't there yet.
+# cpcode = akamai.CpCode(
+#     property_name,
+#     contract_id=contract_id,
+#     group_id=group_id,
+#     product=product_id
+# )
+
+# we tried using apply() with lambda function but than Property resource will fail as rules are empty.
+# property_rules = cpcode.id.apply(lambda id: fill_template(id))
+# so we're stuck with a static cpcode for now.
 
 # first create a local template instance via akamai pipeline. 
 # akamai pipeline np -p template dev -g <group_id> -c <contract_id> -d <product_id>
@@ -72,14 +71,14 @@ print(raw_id)
 # using akamai pipeline some default vars have been created like "${env.cpcCde}"
 # it's possible to use the variableDefinitions.json and variables.json or define them in the call itself.
 # our result is a GetPropertyRulesTemplateResult object with json field with the json config
+
 property_rules = akamai.get_property_rules_template(
     template_file=template_file,
     variables = [
         {
             'name':"cpCode",
-            #'value': int(raw_id.split('_')[1]),
-            'value': str(raw_id),
-            #'value': 1234567,
+            
+            
             'type': "number",
         },
         {
@@ -118,6 +117,7 @@ edge_host = akamai.EdgeHostName(
 # using some Output vars from the created edge_host resource so waiting for that
 # we hit issue: https://github.com/pulumi/pulumi-akamai/issues/36
 # so we can't use empty behaviors, too strict checking by pulumi.
+# the property provider won't wait for the rules so this will fail if rules not acitve during preview fase.
 prop = akamai.Property (
     property_name,
     contract_id = contract_id,
