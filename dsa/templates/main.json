@@ -2,7 +2,8 @@
     "rules": {
         "name": "default",
         "children": [
-            "#include:Offload_origin.json"
+            "#include:Offload_origin.json",
+            "#include:Augment_insights.json"
         ],
         "behaviors": [
             {

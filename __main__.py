@@ -4,7 +4,6 @@ import pulumi
 import pulumi_akamai as akamai
 
 group_name = "GSS Training Internal-C-1IE2OHM"
-cpcode_name = "jgrinwis-pristine"
 property_name = "pulumi.grinwis.com"
 
 # check products available on contract via
@@ -39,11 +38,18 @@ group_id = akamai.get_group(contract_id=contract_id, group_name=group_name).id
 # akamai pipeline np -p <name> dev -g <group> -c <contract> -d <product_id>
 template_file = f"{product}/templates/main.json"
 
+# we tried using apply() with lambda function but then Property resource will fail as rules are empty.
+# so we need another stack we require a value to be present.
+# so let's reference another stack and use apply() to get the value as it's an Output object again
+other = pulumi.StackReference("jjgrinwis/cpcode/cpcode")
+cpcode_name = other.get_output("cpcode_name").apply(lambda x: f"{x}")
+# cpcode_id = other.get_output("cpcode_id").apply(lambda x: x.split('_')[1] )
+
 # as we're out of availble cpcodes on this contract, lets use an existing one
 # akamai pm lcp -g <group_id> -c <contract_id>
 # https://www.pulumi.com/docs/reference/pkg/akamai/getcpcode/
+# using a cpcode from a different pulumi stack
 cpcode = akamai.get_cp_code(name=cpcode_name, contract_id=contract_id, group_id=group_id)
-pulumi.export('cpcode_id', cpcode.id)
 
 # let's check if product_id is part of the cpcode list
 # this is not a showstopper but just to make you aware.
@@ -53,16 +59,24 @@ if product_id not in cpcode.product_ids:
 
 # we tried to create a new cpcode resource but that can't be used with our template
 # template won't wait for the result so will give an error as cpcode value isn't there yet.
+# we can solve that with a lambda but rules will be empty to creating the property will fail.
+# left it here to show how to use lambda with appl()
 # cpcode = akamai.CpCode(
 #     property_name,
 #     contract_id=contract_id,
 #     group_id=group_id,
 #     product=product_id
 # )
-
-# we tried using apply() with lambda function but than Property resource will fail as rules are empty.
-# property_rules = cpcode.id.apply(lambda id: fill_template(id))
-# so we're stuck with a static cpcode for now.
+# def make_template(s):
+#     return akamai.get_property_rules_template(
+#         template_file=template_file,
+#         variables = [{
+#           'name':"cpCode",
+#           'value': int(s),
+#           'type': "number",
+#       }]
+#     )
+# rules = cpcode.id.apply(lambda s: make_template(s.split('_')[1]))
 
 # first create a local template instance via akamai pipeline. 
 # akamai pipeline np -p template dev -g <group_id> -c <contract_id> -d <product_id>
@@ -71,12 +85,13 @@ if product_id not in cpcode.product_ids:
 # using akamai pipeline some default vars have been created like "${env.cpcCde}"
 # it's possible to use the variableDefinitions.json and variables.json or define them in the call itself.
 # our result is a GetPropertyRulesTemplateResult object with json field with the json config
-
+# as it's not an Output object we can reference the values directly.
 property_rules = akamai.get_property_rules_template(
     template_file=template_file,
     variables = [
         {
             'name':"cpCode",
+            # with an Output object we can't do any modifications
             'value': int(cpcode.id.split('_')[1]),
             'type': "number",
         },
@@ -92,8 +107,6 @@ property_rules = akamai.get_property_rules_template(
         }
     ]
 )
-
-# print(property_rules.json)
 
 # create a new edgehostname resource on standard TLS (edgesuite.net) with IPv4 and IPv6 (IPV6_COMPLIANCE)
 # with standard TLS we don't need to assign a certificate, just add that at a later stage.
@@ -130,4 +143,4 @@ prop = akamai.Property (
 )
 
 # you can check the output via "pulumi stack output edge_hostname"
-pulumi.export("edge_hostname", edge_host.edge_hostname)
+pulumi.export("property", prop.name)
