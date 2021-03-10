@@ -91,7 +91,6 @@ property_rules = akamai.get_property_rules_template(
     variables = [
         {
             'name':"cpCode",
-            # with an Output object we can't do any modifications
             'value': int(cpcode.id.split('_')[1]),
             'type': "number",
         },
@@ -129,7 +128,8 @@ edge_host = akamai.EdgeHostName(
 # using some Output vars from the created edge_host resource so waiting for that
 # we hit issue: https://github.com/pulumi/pulumi-akamai/issues/36
 # so we can't use empty behaviors, too strict checking by pulumi.
-# the property provider won't wait for the rules so this will fail if rules not acitve during preview fase.
+# the property provider won't wait for the rules so this will fail if rules not active during preview fase.
+# https://github.com/pulumi/pulumi-akamai/issues/39
 prop = akamai.Property (
     property_name,
     contract_id = contract_id,
