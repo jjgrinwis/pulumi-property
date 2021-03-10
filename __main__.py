@@ -3,8 +3,13 @@
 import pulumi
 import pulumi_akamai as akamai
 
-group_name = "GSS Training Internal-C-1IE2OHM"
-property_name = "pulumi.grinwis.com"
+# get information from our config file. 
+# use "pulumi config set <key> [value]" to set the value
+# Config is unique per project/stack. 
+# To create a new stack in a project use "pulumi stack init" from project dir and select it via "pulumi stack select"
+config = pulumi.Config()
+group_name = config.require("group_name")
+cpcode_name = config.require("cpcode_name")
 
 # check products available on contract via
 # first list contracts via: akamai pm lc
@@ -39,7 +44,7 @@ group_id = akamai.get_group(contract_id=contract_id, group_name=group_name).id
 template_file = f"{product}/templates/main.json"
 
 # we tried using apply() with lambda function but then Property resource will fail as rules are empty.
-# so we need another stack we require a value to be present.
+# so we need another project/stack we require a value to be present.
 # so let's reference another stack and use apply() to get the value as it's an Output object again
 other = pulumi.StackReference("jjgrinwis/cpcode/cpcode")
 cpcode_name = other.get_output("cpcode_name").apply(lambda x: f"{x}")
