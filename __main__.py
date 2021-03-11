@@ -10,6 +10,8 @@ import pulumi_akamai as akamai
 config = pulumi.Config()
 group_name = config.require("group_name")
 cpcode_name = config.require("cpcode_name")
+property_name = config.require("property_name")
+origin_name = config.require("origin_name")
 
 # check products available on contract via
 # first list contracts via: akamai pm lc
@@ -46,6 +48,7 @@ template_file = f"{product}/templates/main.json"
 # we tried using apply() with lambda function but then Property resource will fail as rules are empty.
 # so we need another project/stack we require a value to be present.
 # so let's reference another stack and use apply() to get the value as it's an Output object again
+# to check the output "pulumi stack output"
 other = pulumi.StackReference("jjgrinwis/cpcode/cpcode")
 cpcode_name = other.get_output("cpcode_name").apply(lambda x: f"{x}")
 # cpcode_id = other.get_output("cpcode_id").apply(lambda x: x.split('_')[1] )
@@ -62,6 +65,7 @@ if product_id not in cpcode.product_ids:
     error_string = f"{product_id} not part of cpcode {cpcode.name}"
     pulumi.warn(error_string)
 
+
 # we tried to create a new cpcode resource but that can't be used with our template
 # template won't wait for the result so will give an error as cpcode value isn't there yet.
 # we can solve that with a lambda but rules will be empty to creating the property will fail.
@@ -72,6 +76,7 @@ if product_id not in cpcode.product_ids:
 #     group_id=group_id,
 #     product=product_id
 # )
+
 # def make_template(s):
 #     return akamai.get_property_rules_template(
 #         template_file=template_file,
@@ -81,7 +86,8 @@ if product_id not in cpcode.product_ids:
 #           'type': "number",
 #       }]
 #     )
-# rules = cpcode.id.apply(lambda s: make_template(s.split('_')[1]))
+# #rules = cpcode.id.apply(lambda s: make_template(s.split('_')[1]))
+# rules = cpcode.id.apply(lambda s: make_template(s.split('_')[1]).json)
 
 # first create a local template instance via akamai pipeline. 
 # akamai pipeline np -p template dev -g <group_id> -c <contract_id> -d <product_id>
@@ -101,7 +107,7 @@ property_rules = akamai.get_property_rules_template(
         },
         {
             'name':"originHostname",
-            'value': "netlify.grinwis.com",
+            'value': origin_name,
             'type': "string",
         },
         {

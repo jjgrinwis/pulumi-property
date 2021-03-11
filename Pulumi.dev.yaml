@@ -1,3 +1,5 @@
 config:
   cpcodes:cpcode_name: jgrinwis-pulumi
   cpcodes:group_name: GSS Training Internal-C-1IE2OHM
+  cpcodes:origin_name: netlify.grinwis.com
+  cpcodes:property_name: pulumi.grinwis.com
