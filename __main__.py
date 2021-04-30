@@ -3,17 +3,16 @@
 import pulumi
 import pulumi_akamai as akamai
 
-# get information from our config file. 
+# get information from our config file thats stack specific
 # use "pulumi config set <key> [value]" to set the value
 # Config is unique per project/stack. 
 # To create a new stack in a project use "pulumi stack init" from project dir and select it via "pulumi stack select"
 config = pulumi.Config()
 group_name = config.require("group_name")
-cpcode_name = config.require("cpcode_name")
 property_name = config.require("property_name")
 origin_name = config.require("origin_name")
 
-# check products available on contract via
+# check products available on contract
 # first list contracts via: akamai pm lc
 # lookup product on contract via : akamai pm lp -c <contract_id> 
 product = 'dsa'
@@ -43,7 +42,8 @@ group_id = akamai.get_group(contract_id=contract_id, group_name=group_name).id
 
 # our pipeline template file created via:
 # akamai pipeline np -p <name> dev -g <group> -c <contract> -d <product_id>
-template_file = f"{product}/templates/main.json"
+# since pulumi_akamai 2.1.0 we need to use property-snippets directory name.
+template_file = f"{product}/property-snippets/main.json"
 
 # we tried using apply() with lambda function but then Property resource will fail as rules are empty.
 # so we need another project/stack we require a value to be present.
@@ -69,7 +69,7 @@ if product_id not in cpcode.product_ids:
 # we tried to create a new cpcode resource but that can't be used with our template
 # template won't wait for the result so will give an error as cpcode value isn't there yet.
 # we can solve that with a lambda but rules will be empty to creating the property will fail.
-# left it here to show how to use lambda with appl()
+# left it here to show how to use lambda with apply()
 # cpcode = akamai.CpCode(
 #     property_name,
 #     contract_id=contract_id,
@@ -86,7 +86,7 @@ if product_id not in cpcode.product_ids:
 #           'type': "number",
 #       }]
 #     )
-# #rules = cpcode.id.apply(lambda s: make_template(s.split('_')[1]))
+# rules = cpcode.id.apply(lambda s: make_template(s.split('_')[1]))
 # rules = cpcode.id.apply(lambda s: make_template(s.split('_')[1]).json)
 
 # first create a local template instance via akamai pipeline. 
@@ -122,7 +122,7 @@ property_rules = akamai.get_property_rules_template(
 # with standard TLS we don't need to assign a certificate, just add that at a later stage.
 # https://www.pulumi.com/docs/reference/pkg/akamai/edgehostname/
 # EdgeHostName will return an Output object but won't get removed with a "pulumi destroy" or modified!
-# so make sure to select correct product_id that matches with the property_id in the configuration.
+# Make sure to select correct product_id that matches with the property_id in the configuration.
 edge_hostname = f'{property_name}.edgesuite.net'
 edge_host = akamai.EdgeHostName(
     edge_hostname,
@@ -136,11 +136,12 @@ edge_host = akamai.EdgeHostName(
 # create our Property resource using our template we've collected before
 # https://www.pulumi.com/docs/reference/pkg/akamai/properties/property/
 # https://registry.terraform.io/providers/akamai/akamai/latest/docs/resources/property
-# using some Output vars from the created edge_host resource so waiting for that
-# we hit issue: https://github.com/pulumi/pulumi-akamai/issues/36
-# so we can't use empty behaviors, too strict checking by pulumi.
-# the property provider won't wait for the rules so this will fail if rules not active during preview fase.
-# https://github.com/pulumi/pulumi-akamai/issues/39
+# using some Output vars from the created edge_host resource so waiting for that.
+# hostnames var changed in the Akamai Terraform provider 1.5.1
+# hostnames = Optional[pulumi.Input[Sequence[pulumi.Input[pulumi.InputType['PropertyHostnameArgs']]]]
+# for the hostname, cert can be DEFAULT or CPS_MANAGED
+# for extra debugging:
+# TF_LOG=TRACE pulumi up --logtostderr -v=9 2> out.txt
 prop = akamai.Property (
     property_name,
     contract_id = contract_id,
@@ -148,10 +149,22 @@ prop = akamai.Property (
     product_id=product_id,
     name = property_name,
     rules = property_rules.json,
-    hostnames = {
-        property_name: edge_host.edge_hostname
-    }
+    hostnames = [ 
+        {                                     
+            "cname_from": property_name,
+            "cname_to" : edge_host.edge_hostname,
+            "cert_provisioning_type": "CPS_MANAGED"
+        }
+    ]
 )
 
+# looks like we need to activate it before we can make modifications.
+# let's activate it on staging and get id and latest_version from created property resource
+# https://www.pulumi.com/docs/reference/pkg/akamai/propertyactivation/
+prop_staging = akamai.PropertyActivation("propStaging",
+    property_id=prop.id,
+    contacts=['jgrinwis@akamai.com'],
+    version=prop.latest_version)
+
 # you can check the output via "pulumi stack output edge_hostname"
-pulumi.export("property", prop.name)
+pulumi.export("property", prop.latest_version)
