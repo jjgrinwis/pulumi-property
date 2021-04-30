@@ -1,0 +1,39 @@
+{
+    "rules": {
+        "name": "default",
+        "children": [
+            "#include:Offload_origin.json",
+            "#include:Augment_insights.json",
+            "#include:Increase_availability.json",
+            "#include:Minimize_payload.json",
+            "#include:Offload_origin.json",
+            "#include:Accelerate_Delivery.json",
+            "#include:Strengthen_security.json"
+        ],
+        "behaviors": [
+            {
+                "name": "origin",
+                "options": {
+                    "cacheKeyHostname": "REQUEST_HOST_HEADER",
+                    "compress": true,
+                    "enableTrueClientIp": true,
+                    "forwardHostHeader": "REQUEST_HOST_HEADER",
+                    "httpPort": 80,
+                    "httpsPort": 443,
+                    "originCertificate": "",
+                    "originSni": true,
+                    "originType": "CUSTOMER",
+                    "ports": "",
+                    "trueClientIpClientSetting": false,
+                    "trueClientIpHeader": "True-Client-IP",
+                    "verificationMode": "PLATFORM_SETTINGS",
+                    "hostname": "${env.originHostname}"
+                }
+            }
+        ],
+        "options": {
+            "is_secure": false
+        },
+        "comments": "The Default Rule template contains all the necessary and recommended features. Rules are evaluated from top to bottom and the last matching rule wins."
+    }
+}
