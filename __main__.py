@@ -3,7 +3,7 @@
 import pulumi
 import pulumi_akamai as akamai
 
-# get information from our config file thats stack specific
+# get information from our config file that is stack specific
 # use "pulumi config set <key> [value]" to set the value
 # Config is unique per project/stack. 
 # To create a new stack in a project use "pulumi stack init" from project dir and select it via "pulumi stack select"
@@ -64,7 +64,6 @@ cpcode = akamai.get_cp_code(name=cpcode_name, contract_id=contract_id, group_id=
 if product_id not in cpcode.product_ids:
     error_string = f"{product_id} not part of cpcode {cpcode.name}"
     pulumi.warn(error_string)
-
 
 # we tried to create a new cpcode resource but that can't be used with our template
 # template won't wait for the result so will give an error as cpcode value isn't there yet.
