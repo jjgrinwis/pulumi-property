@@ -139,13 +139,15 @@ edge_host = akamai.EdgeHostName(
 # hostnames var changed in the Akamai Terraform provider 1.5.1
 # hostnames = Optional[pulumi.Input[Sequence[pulumi.Input[pulumi.InputType['PropertyHostnameArgs']]]]
 # for the hostname, cert can be DEFAULT or CPS_MANAGED
-# for extra debugging TF_LOG=TRACE pulumi up --logtostderr -v=9 2> out.txt
+#
+# When trying to activate a changed config we're hitting issue: https://github.com/pulumi/pulumi-akamai/issues/50
+# for extra debugging export TF_LOG=TRACE; pulumi up --logtostderr -v=9 2> out.txt
 prop = akamai.Property (
     property_name,
     contract_id = contract_id,
     group_id = group_id,
     product_id=product_id,
-    name = property_name,
+    name = "pulumi_new",
     rules = property_rules.json,
     hostnames = [ 
         {                                     
@@ -156,7 +158,6 @@ prop = akamai.Property (
     ]
 )
 
-# looks like we need to activate it before we can make modifications.
 # let's activate it on staging and get id and latest_version from created property resource
 # https://www.pulumi.com/docs/reference/pkg/akamai/propertyactivation/
 prop_staging = akamai.PropertyActivation(
@@ -167,4 +168,5 @@ prop_staging = akamai.PropertyActivation(
 )
 
 # you can check the output via "pulumi stack output edge_hostname"
-pulumi.export("property", prop.latest_version)
+pulumi.export("latest_version", prop.latest_version)
+pulumi.export("staging_version", prop.staging_version)
