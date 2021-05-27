@@ -1,0 +1,5 @@
+config:
+  akamai:propertySection: betajam
+  property:group_name: Ion Standard Beta Jam 1-3-16TWBVX
+  property:origin_name: netlify.grinwis.com
+  property:property_name: grinwis.pulumi.nl

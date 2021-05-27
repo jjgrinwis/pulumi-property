@@ -1,4 +1,4 @@
-name: cpcodes
+name: property
 runtime:
   name: python
   options:
