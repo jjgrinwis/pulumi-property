@@ -1,0 +1,16 @@
+{
+    "properties": [
+        {
+            "name": "john.pulumi.nl",
+            "origin": "netlify.grinwis.com"
+        },
+        {
+            "name": "arno.pulumi.nl",
+            "origin": "netlify.grinwis.com"
+        },
+        {
+            "name": "koen.pulumi.nl",
+            "origin": "netlify.grinwis.com"
+        }
+    ]
+}

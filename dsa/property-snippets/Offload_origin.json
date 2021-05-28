@@ -39,7 +39,7 @@
                     "options": {
                         "behavior": "MAX_AGE",
                         "mustRevalidate": false,
-                        "ttl": "7d"
+                        "ttl": "8d"
                     }
                 }
             ],
