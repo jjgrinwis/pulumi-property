@@ -74,6 +74,16 @@ if product_id not in cpcode.product_ids:
     pulumi.warn(error_string)
 
 
+def create_valid_name(hostname):
+    # the koen special to create wildcard hostname
+    # we can extend this function to do some other checks in the future
+    host = hostname.split('.', 1)
+    if host[0] == "*":
+        hostname = f"wildcard.{host[1]}"
+
+    return hostname
+
+
 def get_txt_records(h):
     # let's automatically create the TXT records in EdgeDNS
     # akamai provider will use dns entry from .edgerc by default
@@ -129,7 +139,8 @@ for property in data['properties']:
     # https://www.pulumi.com/docs/reference/pkg/akamai/edgehostname/
     # EdgeHostName will return an Output object but won't get removed with a "pulumi destroy" or modified!
     # Make sure to select correct product_id that matches with the property_id in the configuration.
-    edge_hostname = f"{property['name']}.edgesuite.net"
+    valid_name = create_valid_name(property['name'])
+    edge_hostname = f"{valid_name}.edgesuite.net"
     edge_host = akamai.EdgeHostName(
         edge_hostname,
         contract_id=contract_id,
@@ -150,11 +161,11 @@ for property in data['properties']:
     # When trying to activate a changed config we're hitting issue: https://github.com/pulumi/pulumi-akamai/issues/50
     # for extra debugging export TF_LOG=TRACE; pulumi up --logtostderr -v=9 2> out.txt
     prop = akamai.Property(
-        property['name'],
+        valid_name,
         contract_id=contract_id,
         group_id=group_id,
         product_id=product_id,
-        name=property['name'],
+        name=valid_name,
         rules=property_rules.json,
         hostnames=[
             {

@@ -11,6 +11,10 @@
         {
             "name": "koen.pulumi.nl",
             "origin": "netlify.grinwis.com"
+        },
+        {
+            "name": "*.pulumi.nl",
+            "origin": "netlify.grinwis.com"
         }
     ]
 }
