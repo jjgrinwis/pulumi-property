@@ -6,7 +6,7 @@ image:
 tasks:
   - init: |
       python -m pip install --upgrade pip
-      virtuelenv venv 
+      virtualenv venv 
       pip install pulumi pulumi_akamai
 
   - before: "echo 'export PIP_USER=no' >> ~/.bashrc && export PIP_USER=no"
