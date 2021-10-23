@@ -6,11 +6,13 @@ image:
 tasks:
   - init: |
       python -m pip install --upgrade pip
-      python -m pip install pulumi pulumi_akamai
+      virtuelenv venv 
+      pip install pulumi pulumi_akamai
 
-  - name: Use Pulumi
+  - before: "echo 'export PIP_USER=no' >> ~/.bashrc && export PIP_USER=no"
+    name: Use Pulumi
     command: pulumi login
-    
+
 ports:
   - port: 5000
     onOpen: ignore
