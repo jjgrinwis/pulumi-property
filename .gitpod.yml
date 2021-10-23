@@ -12,7 +12,6 @@ tasks:
   - before: "echo 'export PIP_USER=no' >> ~/.bashrc && export PIP_USER=no"
     name: Use Pulumi
     command: pulumi login
-
 ports:
   - port: 5000
     onOpen: ignore
