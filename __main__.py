@@ -98,7 +98,7 @@ def get_txt_records(h):
                 f"{cert['hostname']} CNAME 60 {cert['target']}")
 
     # we shouldn't have any duplicates but to be sure, just let's remove them using set().
-    return(list(set(certs)))
+    return (list(set(certs)))
 
 
 # now loop through our defined properties
@@ -175,6 +175,14 @@ for property in data['properties']:
             }
         ]
     )
+
+    example_staging = akamai.PropertyActivation(
+        valid_name,
+        property_id=prop.id,
+        contacts=[
+            "jgrinwis@akamai.com"],
+        version=prop.latest_version,
+        note="Sample activation")
 
     # let's check our automatically requested certs during property creation
     # the cert_status can be found in hostname[].cert_statuses[] of the create akamai.Property
