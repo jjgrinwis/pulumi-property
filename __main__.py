@@ -176,13 +176,13 @@ for property in data['properties']:
         ]
     )
 
-    example_staging = akamai.PropertyActivation(
+    """ example_staging = akamai.PropertyActivation(
         valid_name,
         property_id=prop.id,
         contacts=[
-            "jgrinwis@akamai.com"],
+            "blabla@bla.com"],
         version=prop.latest_version,
-        note="Sample activation")
+        note="Sample activation") """
 
     # let's check our automatically requested certs during property creation
     # the cert_status can be found in hostname[].cert_statuses[] of the create akamai.Property
